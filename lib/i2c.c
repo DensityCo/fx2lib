@@ -62,8 +62,8 @@ BOOL i2c_write ( BYTE addr, WORD len, BYTE *addr_buf, WORD len2, BYTE* data_buf 
         cur_byte=0;
         I2CS |= bmSTART;
         if ( I2CS & bmBERR ) {
-            i2c_printf ( "Woops.. need to do the timer\n" );
-            delay(10); // way too long probably
+            ////i2c_printf ( "Woops.. need to do the timer\n" );
+            //delay(10); // way too long probably
             goto step1;
             }
    
@@ -75,7 +75,7 @@ BOOL i2c_write ( BYTE addr, WORD len, BYTE *addr_buf, WORD len2, BYTE* data_buf 
         while ( !(I2CS & bmDONE) && !cancel_i2c_trans);
         CHECK_I2C_CANCEL();
         if (I2CS&bmBERR) {
-            i2c_printf ( "bmBERR, going to step 1\n" );
+            //i2c_printf ( "bmBERR, going to step 1\n" );
             goto step1;
         }
     
@@ -87,10 +87,10 @@ BOOL i2c_write ( BYTE addr, WORD len, BYTE *addr_buf, WORD len2, BYTE* data_buf 
         CHECK_I2C_CANCEL();
         --retry_count;
         if (!retry_count){
-            i2c_printf ( "No ack after writing address.! Fail\n");
+            //i2c_printf ( "No ack after writing address.! Fail\n");
             return FALSE;
         }
-        delay(10);
+        delay(1);
         goto step1;
     }
     
@@ -102,7 +102,7 @@ BOOL i2c_write ( BYTE addr, WORD len, BYTE *addr_buf, WORD len2, BYTE* data_buf 
         // 6. Wait for DONE=1*. If BERR=1, go to step 1.
         while (!(I2CS&bmDONE) && !cancel_i2c_trans); CHECK_I2C_CANCEL();
         if ( I2CS&bmBERR ) {
-         i2c_printf ( "bmBERR on byte %d. Going to step 1\n" , cur_byte-1 );
+         //i2c_printf ( "bmBERR on byte %d. Going to step 1\n" , cur_byte-1 );
          goto step1;
          //return FALSE;
         }
@@ -110,7 +110,7 @@ BOOL i2c_write ( BYTE addr, WORD len, BYTE *addr_buf, WORD len2, BYTE* data_buf 
         if ( !(I2CS & bmACK) ) {
             I2CS |= bmSTOP;
             while ( (I2CS&bmSTOP) && !cancel_i2c_trans);
-            i2c_printf ( "No Ack after byte %d. Fail\n", cur_byte-1 );
+            //i2c_printf ( "No Ack after byte %d. Fail\n", cur_byte-1 );
             return FALSE; 
         }
     }
@@ -178,7 +178,7 @@ BOOL i2c_read( BYTE addr, WORD len, BYTE* buf) {
 
         I2CS |= bmSTART;
         if ( I2CS & bmBERR ) {            
-            i2c_printf ( "Woops, step1 BERR, need to do timeout\n");
+            //i2c_printf ( "Woops, step1 BERR, need to do timeout\n");
             delay(10); // NOTE way too long
             goto start;
         }
@@ -251,9 +251,9 @@ BOOL eeprom_write(BYTE prom_addr, WORD addr, WORD length, BYTE* buf) {
 
 #ifdef DEBUG_I2C
     if ( EEPROM_TWO_BYTE ) {
-        i2c_printf ( "Two Byte EEProm Address detected.\n" );
+        //i2c_printf ( "Two Byte EEProm Address detected.\n" );
     } else {
-        i2c_printf ( "Single Byte EEProm address detected.\n" );
+        //i2c_printf ( "Single Byte EEProm address detected.\n" );
     }
 #endif
     
@@ -265,7 +265,7 @@ BOOL eeprom_write(BYTE prom_addr, WORD addr, WORD length, BYTE* buf) {
         data_buffer[addr_len++] = LSB(addr);
         data_buffer[addr_len++] = buf[cur_byte++];
 
-        i2c_printf ( "%02x " , data_buffer[addr_len-1] );
+        //i2c_printf ( "%02x " , data_buffer[addr_len-1] );
         
         if ( ! i2c_write ( prom_addr, addr_len, data_buffer, 0, NULL ) ) return FALSE;
         ++addr; // next byte goes to next address

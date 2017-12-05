@@ -30,6 +30,10 @@
 #include <eputils.h>
 #include <setupdat.h>
 
+#define CLASS_REQ 0x20
+#define VENDOR_REQ 0x40
+#define STD_REQ 0x80
+
 
 extern BOOL handle_get_descriptor();
 extern BOOL handle_vendorcommand(BYTE cmd);
@@ -71,8 +75,9 @@ void _handle_get_descriptor();
 
 void handle_setupdata() {
     //printf ( "Handle setupdat: %02x\n", SETUPDAT[1] );
-
-    switch ( SETUPDAT[1] ) {
+    if ((SETUPDAT[0] & 0xF0) == STD_REQ)
+    {
+        switch ( SETUPDAT[1] ) {
 
         case GET_STATUS:
             if (!handle_get_status())
@@ -90,9 +95,9 @@ void handle_setupdata() {
             break;
         case GET_DESCRIPTOR:
             if (!handle_get_descriptor())
-              _handle_get_descriptor();
+                _handle_get_descriptor();
             break;
-        case GET_CONFIGURATION:            
+        case GET_CONFIGURATION:
             EP0BUF[0] = handle_get_configuration();
             EP0BCH=0;
             EP0BCL=1;
@@ -104,16 +109,16 @@ void handle_setupdata() {
             }
             break;
         case GET_INTERFACE:
-            {
-                BYTE alt_ifc;
-                if (!handle_get_interface(SETUPDAT[4],&alt_ifc)) {
-                    STALLEP0();
-                } else {
-                 EP0BUF[0] = alt_ifc;
-                 EP0BCH=0;
-                 EP0BCL=1;
-                }
+        {
+            BYTE alt_ifc;
+            if (!handle_get_interface(SETUPDAT[4],&alt_ifc)) {
+                STALLEP0();
+            } else {
+                EP0BUF[0] = alt_ifc;
+                EP0BCH=0;
+                EP0BCL=1;
             }
+        }
             break;
         case SET_INTERFACE:
             // user callback
@@ -122,12 +127,17 @@ void handle_setupdata() {
             }
             break;
         default:
-         if (!handle_vendorcommand(SETUPDAT[1])) {
-            printf ( "Unhandled Vendor Command: %02x\n" , SETUPDAT[1] );
-            STALLEP0();
-         }
-        
-        
+            if (!handle_vendorcommand(SETUPDAT[1])) {
+                printf ( "Unhandled Vendor Command: %02x\n" , SETUPDAT[1] );
+                STALLEP0();
+            }
+        }
+
+    }
+
+    else if ( SETUPDAT[0] & VENDOR_REQ ) // vendor commands
+    {
+        handle_vendorcommand(SETUPDAT[1]);
     }
     
     // do the handshake
